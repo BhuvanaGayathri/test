@@ -1,0 +1,78 @@
+<html>
+    <body>
+        <section id="banner">
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <div id="chat-container"></div>
+          <center>
+            <input type="text" id="user-message" placeholder="Place your order here..." autofocus />
+          <button id="send-button" type="submit">Send</button>
+          </center>
+           </div>
+    </section>
+    
+    <script>
+        const chatContainer = document.getElementById("chat-container");
+const userMessageInput = document.getElementById("user-message");
+const sendButton = document.getElementById("send-button");
+
+const recognition = new webkitSpeechRecognition();
+recognition.continuous = true;
+
+sendButton.addEventListener("click", sendMessage);
+userMessageInput.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+        sendMessage();
+    }
+});
+
+function appendMessage(role, content) {
+    const messageElement = document.createElement("div");
+    messageElement.classList.add("message");
+
+    if (role === "User") {
+        messageElement.classList.add("user-message");
+        messageElement.innerHTML = `
+            <span>${content}</span>
+        `;
+    } else if (role === "Bot") {
+        messageElement.classList.add("bot-message");
+        messageElement.innerHTML = `
+            <span>${content}</span>
+        `;
+    }
+
+    chatContainer.appendChild(messageElement);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+async function sendMessage() {
+    const userMessage = userMessageInput.value;
+    if (userMessage.trim() === "") {
+        return;
+    }
+
+    appendMessage("User", userMessage);
+    userMessageInput.value = "";
+    userMessageInput.focus();
+
+    const response = await fetch("/chat", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ content: userMessage })
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        const botMessage = data.message;
+        appendMessage("Bot", botMessage);
+        
+    }
+}
+ </script>
+
+</body>
+    </html>

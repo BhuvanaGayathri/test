@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Restaurant Logo and Data Upload</title>
+    <style>
+        /* Adjust the size of the navigation bar */
+        nav {
+            background-color: #f9f2f2;
+            padding: 10px;
+            height: 100px;
+        }
+
+        /* Adjust the size of the logo image */
+        #navbarLogo {
+            width: 150px; /* Adjust the width as per your requirement */
+            height: 100px; /* Automatically scale the height to maintain aspect ratio */
+            display: block; /* Ensures the image behaves as a block element */
+            float: left; /* Center the image horizontally within the navigation bar */
+            margin-left: 12%;
+            margin-top: -5%;
+        }
+
+        /* Style for the image and table data upload form */
+        .formWrapper {
+            display: none; /* Initially hide the forms */
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+
+        #uploadLink {
+            float: right;
+            font-size: larger;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <!-- Link to trigger the display of the combined upload form -->
+        <h1 id="restaurantName">Order AI bot</h1>
+        <a href="#" id="uploadLink">Setup</a>
+        <!-- Uploaded logo or default logo will be displayed here -->
+        <img src="/static/default_logo.png" alt="Logo" id="navbarLogo">
+    </nav>
+
+    <!-- Combined image and table data upload form -->
+    <div class="formWrapper" id="uploadFormWrapper">
+        <form id="uploadForm" enctype="multipart/form-data">
+            <b><label>Upload Restaurant name: </label></b><input type="text" name="restaurant_name" id="nameInput"><br><br>
+            <b><label>Upload logo: </label></b>&nbsp;&nbsp;&nbsp;&nbsp;<input type="file" name="logo" id="logoInput"
+                accept=".jpg, .jpeg, .png"><br><br>
+            <b><label>Upload menu: </label></b>&nbsp;&nbsp;<input type="file" name="data_file" id="dataFileInput"
+                accept=".csv, .xls, .xlsx"><br><br>
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+
+    <section id="tableSection" style="display: none;">
+        <h2>Uploaded Data Table</h2>
+        <table id="dataTable">
+            <!-- The table content will be filled dynamically -->
+        </table>
+    </section>
+    
+
+    <script>
+        // Function to show the form based on the provided ID
+        function showForm(formId) {
+            const formWrappers = document.querySelectorAll(".formWrapper");
+            formWrappers.forEach(wrapper => {
+                if (wrapper.id === formId) {
+                    wrapper.style.display = "block";
+                } else {
+                    wrapper.style.display = "none";
+                }
+            });
+        }
+
+        // Show the combined upload form when the link is clicked
+        const uploadLink = document.getElementById("uploadLink");
+        uploadLink.addEventListener("click", function (event) {
+            event.preventDefault();
+            showForm("uploadFormWrapper");
+        });
+
+        // Handle form submission for logo upload
+        document.getElementById("uploadForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+
+            fetch("/upload/logo/", {
+                method: "POST",
+                body: formData,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === "Logo uploaded successfully.") {
+                        // Update the navigation bar logo with the uploaded logo
+                        const navbarLogo = document.getElementById("navbarLogo");
+                        navbarLogo.src = data.logo_url;
+                    }
+                    // Continue with data upload
+                    uploadData(formData);
+                })
+                .catch(error => {
+                    console.error("Error uploading logo:", error);
+                });
+        });
+
+        // Function to handle data file upload
+        function uploadData(formData) {
+            fetch("/upload/data/", {
+                method: "POST",
+                body: formData,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === "Data uploaded successfully.") {
+                        // Update the table with the uploaded data
+                        displayDataTable(data.data);
+                    }
+                    // Hide the form after successful upload
+                    document.getElementById("uploadFormWrapper").style.display = "none";
+                })
+                .catch(error => {
+                    console.error("Error uploading data:", error);
+                    // Hide the form on error as well
+                    document.getElementById("uploadFormWrapper").style.display = "none";
+                });
+        }
+
+        // Function to display the table on the webpage
+        function displayDataTable(data) {
+            const tableSection = document.getElementById("tableSection");
+            const dataTable = document.getElementById("dataTable");
+            // Clear any previous table content
+            dataTable.innerHTML = "";
+
+            // Create the table header row
+            const headerRow = document.createElement("tr");
+            for (const key of Object.keys(data[0])) {
+                const th = document.createElement("th");
+                th.textContent = key;
+                headerRow.appendChild(th);
+            }
+            dataTable.appendChild(headerRow);
+
+            // Create the table rows with data
+            for (const item of data) {
+                const dataRow = document.createElement("tr");
+                for (const value of Object.values(item)) {
+                    const td = document.createElement("td");
+                    td.textContent = value;
+                    dataRow.appendChild(td);
+                }
+                dataTable.appendChild(dataRow);
+            }
+
+            // Show the table section
+            tableSection.style.display = "block";
+        }
+
+        // Function to handle form submission and update the restaurant name
+        document.getElementById("uploadForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+
+            // Get the restaurant name from the form input
+            const restaurantNameInput = document.getElementById("nameInput");
+            const restaurantName = restaurantNameInput.value.trim();
+
+            // Update the restaurant name in the navigation bar
+            const restaurantNameHeading = document.getElementById("restaurantName");
+            restaurantNameHeading.textContent = restaurantName;
+
+            // Continue with the rest of the form submission (logo and data upload)
+            uploadLogoAndData(formData);
+        });
+
+         </script>
+</body>
+</html>
