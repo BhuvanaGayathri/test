@@ -1,5 +1,9 @@
 fastapi
 uvicorn
 openai
+pandas
+os
+shutil
+uuid
 
 python-dotenv

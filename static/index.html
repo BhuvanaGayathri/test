@@ -19,6 +19,16 @@
             margin-left: 12%;
             margin-top: -5%;
         }
+        table th{
+            background-color: rgba(149, 35, 35, 0.896);
+            color:white;
+            font-size: larger;
+        }
+        table tr{
+            background-color: rgba(250, 235, 215, 0.478);
+            color:black;
+            font-size: 18px;
+        }
 
         /* Style for the image and table data upload form */
         .formWrapper {
@@ -30,6 +40,11 @@
         #uploadLink {
             float: right;
             font-size: larger;
+            text-decoration: none;
+            background-color: blue;
+            color:white;
+            padding:0.5%;
+            border-radius: 50%;
         }
     </style>
 </head>
@@ -45,7 +60,8 @@
     <!-- Combined image and table data upload form -->
     <div class="formWrapper" id="uploadFormWrapper">
         <form id="uploadForm" enctype="multipart/form-data">
-            <b><label>Upload Restaurant name: </label></b><input type="text" name="restaurant_name" id="nameInput"><br><br>
+            <b><label>Restaurant name: </label></b><input type="text" name="restaurant_name" id="nameInput"><br><br>
+            <b><label>Whatsapp number: </label></b><input type="text" name="number" maxlength=10 id="number"><br><br>
             <b><label>Upload logo: </label></b>&nbsp;&nbsp;&nbsp;&nbsp;<input type="file" name="logo" id="logoInput"
                 accept=".jpg, .jpeg, .png"><br><br>
             <b><label>Upload menu: </label></b>&nbsp;&nbsp;<input type="file" name="data_file" id="dataFileInput"

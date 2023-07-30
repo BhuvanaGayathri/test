@@ -8,10 +8,7 @@ load_dotenv()
 api_key = os.getenv("API_KEY")
 openai.api_key = api_key
 
-
-
 import csv
-
 
 def read_menu_from_csv(file_path):
     menu = {}
@@ -46,6 +43,16 @@ You should take orders only for the items that aree included in the following me
 """} ]  # accumulate messages
 
 
+menu_file_path = "./menu.csv"  # Update the path as needed
+
+# Read the menu from the CSV file
+menu = read_menu_from_csv(menu_file_path)
+
+# Update the bot's context with the menu items and prices
+context[0]['content'] = 'You are OrderBot, an automated service to collect orders for a street dosa. Your first question after greeting the customer is how may I help you today. This question is first and fixed. Then collect the order, and ask if it\'s a pickup or delivery. Wait to collect the entire order, then summarize it and check the final amount in Rupees. If the customer wants to add anything else, clarify all options, extras, and sizes uniquely identifying the item from the menu. If it\'s a delivery, ask for an address. Finally, collect the payment for all the orders. Make sure that the payment is made by the customer. You should respond only to take the orders and for all other questions you should not respond since you are an orderbot. You respond in a short, very conversational friendly style. You should take orders only for the items that are included in the following menu.\n'
+for item, price in menu.items():
+    context[0]['content'] += f"{item}  {price:.2f} \n"
+
 
 def update_menu_context(file_path):
     global context
@@ -53,6 +60,7 @@ def update_menu_context(file_path):
     context[0]['content'] = 'You are OrderBot, an automated service to collect orders for a street dosa. Your first question after greeting the customer is how may I help you today. This question is first and fixed. Then collect the order, and ask if it\'s a pickup or delivery. Wait to collect the entire order, then summarize it and check the final amount in Rupees. If the customer wants to add anything else, clarify all options, extras, and sizes uniquely identifying the item from the menu. If it\'s a delivery, ask for an address. Finally, collect the payment for all the orders. Make sure that the payment is made by the customer. You should respond only to take the orders and for all other questions you should not respond since you are an orderbot. You respond in a short, very conversational friendly style. You should take orders only for the items that are included in the following menu.\n'
     for item, price in menu.items():
         context[0]['content'] += f"{item}  {price:.2f} \n"
+        print(item,price)
 
 
 def get_completion_from_messages(messages, model="gpt-3.5-turbo", temperature=0):
@@ -70,3 +78,4 @@ def collect_messages_text(msg):
     response = get_completion_from_messages(context) 
     context.append({'role':'assistant', 'content':f"{response}"})
     return response
+

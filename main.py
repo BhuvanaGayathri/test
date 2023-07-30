@@ -10,6 +10,7 @@ import uuid
 import pandas as pd
 
 
+
 app = FastAPI()
 
 # Define the path where the logos will be saved on the server
@@ -23,6 +24,7 @@ RESTAURANT_DIR = "./restaurants/"  # Update the directory path as needed
 
 # Mount the "static" directory to serve static files (including index.html)
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 # Create the "restaurants" directory if it doesn't exist
 os.makedirs(RESTAURANT_DIR, exist_ok=True)
@@ -67,44 +69,6 @@ async def upload_logo(logo: UploadFile = File(...), restaurant_name: str = Form(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# @app.post("/upload/data/")
-# async def upload_data(data_file: UploadFile = File(...)):
-#     try:
-#         # Create the "temp" directory if it doesn't exist
-#         os.makedirs(TEMP_DIR, exist_ok=True)
-
-#         # Generate a unique filename for the uploaded logo
-#         unique_filename = f"{data_file.filename}"
-
-#         # Create a temporary directory inside "temp" to save the uploaded data file
-#         temp_dir = os.path.join(TEMP_DIR,unique_filename)
-#         os.makedirs(temp_dir, exist_ok=True)
-
-#         # Save the uploaded data file to the temporary directory with the original filename
-#         file_path = os.path.join(temp_dir, data_file.filename)
-#         with open(file_path, "wb") as buffer:
-#             shutil.copyfileobj(data_file.file, buffer)
-            
-#         # Read the data from the uploaded file (supports Excel and CSV formats)
-#         if data_file.filename.endswith(".csv"):
-#             df = pd.read_csv(file_path)
-#         elif data_file.filename.endswith((".xls", ".xlsx")):
-#             df = pd.read_excel(file_path)
-#         else:
-#             raise HTTPException(status_code=400, detail="Unsupported file format. Only CSV, Excel (XLS/XLSX) files are supported.")
-
-#         # Convert the data to a list of dictionaries for sending to the client
-#         data_list = df.to_dict(orient="records")
-
-#         menu_file_path = "./menu.csv"  # Path to the menu file in the root directory
-#         df.to_csv(menu_file_path, index=False)
-
-#         return {"message": "Data uploaded successfully.", "data": data_list}
-
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-
-
 @app.post("/upload/data/")
 async def upload_data(data_file: UploadFile = File(...)):
     try:
@@ -115,35 +79,33 @@ async def upload_data(data_file: UploadFile = File(...)):
         unique_filename = f"{data_file.filename}"
 
         # Create a temporary directory inside "temp" to save the uploaded data file
-        temp_dir = os.path.join(TEMP_DIR, unique_filename)
+        temp_dir = os.path.join(TEMP_DIR,unique_filename)
         os.makedirs(temp_dir, exist_ok=True)
 
         # Save the uploaded data file to the temporary directory with the original filename
         file_path = os.path.join(temp_dir, data_file.filename)
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(data_file.file, buffer)
-
+            
         # Read the data from the uploaded file (supports Excel and CSV formats)
         if data_file.filename.endswith(".csv"):
             df = pd.read_csv(file_path)
         elif data_file.filename.endswith((".xls", ".xlsx")):
             df = pd.read_excel(file_path)
         else:
-            raise HTTPException(status_code=400,
-                                detail="Unsupported file format. Only CSV, Excel (XLS/XLSX) files are supported.")
+            raise HTTPException(status_code=400, detail="Unsupported file format. Only CSV, Excel (XLS/XLSX) files are supported.")
 
         # Convert the data to a list of dictionaries for sending to the client
         data_list = df.to_dict(orient="records")
 
-        # Update the menu content in the 'context' variable after CSV upload
         menu_file_path = "./menu.csv"  # Path to the menu file in the root directory
         df.to_csv(menu_file_path, index=False)
+
+        # Update the menu content in the bot's context
         update_menu_context(menu_file_path)
 
         return {"message": "Data uploaded successfully.", "data": data_list}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
 
